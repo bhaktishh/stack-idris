@@ -1,0 +1,16 @@
+[custom.all.stack-idris]
+type = "local"
+path = "."
+ipkg = "stack-idris.ipkg"
+test = "test/test.ipkg"
+
+[custom.all.stack-idris-test]
+type = "local"
+path = "test"
+ipkg = "test.ipkg"
+
+[custom.all.idrisGL]
+type = "github"
+url = "https://github.com/bhaktishh/Idris2GL"
+commit = "233a9ca98a73006fb2709323e9e77591eedc193c"
+ipkg = "idrisGL.ipkg"
