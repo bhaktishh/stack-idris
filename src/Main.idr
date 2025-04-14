@@ -43,8 +43,10 @@ data GameState : Type where
                   (size : Int) ->  -- width of current block
                   GameState
 
-drawRects : List ((Int, Int), Int) -> Bool -> Picture
-drawRects ls init = Pictures $ (map (\((x, y), size) => Rectangle (MkRect x y size (if init then (cast (0.6 * windowHeight)) else blockHeight)) Color.white True) ls)
+drawRects : List ((Int, Int), Int) -> Picture
+drawRects ls = Pictures $ 
+                    (map (\((x, y), size) => 
+                    Rectangle (MkRect x y size blockHeight) Color.white True) ls)
 
 initRect : Picture
 initRect = Rectangle (MkRect (cast (0.35 * windowWidth)) 
@@ -53,25 +55,35 @@ initRect = Rectangle (MkRect (cast (0.35 * windowWidth))
                     (cast (0.6 * windowHeight))) Color.blue True
 
 initGame : GameState 
-initGame = MkGameState 0 2 0 (0, cast (0.4 * windowHeight)) True 
+initGame = MkGameState 0 1 0 (0, cast (0.4 * windowHeight)) True 
             [(((cast (0.35 * windowWidth)), (cast (0.4 * windowHeight) + blockHeight)), blockWidth)] blockWidth
 
-drawOneBlockAt : Int -> Int -> Color -> Picture 
-drawOneBlockAt x y c = Rectangle (MkRect x y blockWidth blockHeight) c True
+drawOneBlockAt : Int -> Int -> Int -> Color -> Picture 
+drawOneBlockAt x y width c = Rectangle (MkRect x y width blockHeight) c True
 
 -- from a game state, generate a picture
 showGame : StateT GameState IO Picture
 showGame = do 
     (MkGameState score speed streak (x,y) dir past size) <- get
-    let cur = (drawOneBlockAt x y Color.white)
-    pure (Pictures [drawRects past (score == 0), cur])
+    if (size < 1) then (pure Blank) else (do 
+    let cur = (drawOneBlockAt x y size Color.white)
+    pure (Pictures [drawRects past, cur]))
+
+shiftDown : List ((Int, Int), Int) -> List ((Int, Int), Int)
+shiftDown = map (\((x, y), size) => ((x, y + blockHeight), size))
 
 -- event handler - mouse and keyboard events 
 e2w : Eve -> StateT GameState IO ()
 e2w (E_KEYDOWN EK_SPACE) = do
     (MkGameState score speed streak (x,y) dir past size) <- get
-    ?idk 
-
+    case past of
+        (((px, py), psize) :: ls) => (do
+            let (cx, cy) = (if dir then (windowWidthInt - blockWidth) else 0, y) -- new block
+                csize = size - (abs (x - px)) -- new size 
+                xpos = if x < px then px else x
+            put $ (MkGameState (score + 1) speed streak (cx, cy) (not dir) (shiftDown (((xpos, y), csize) :: past)) csize))
+        _ => ?idk
+e2w (E_KEYDOWN EK_RETURN) = put initGame 
 e2w e = pure ()
 
 updatePos : Int -> Bool -> Int -> Int -> (Int, Bool)
