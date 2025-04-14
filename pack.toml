@@ -9,6 +9,8 @@ type = "local"
 path = "test"
 ipkg = "test.ipkg"
 
+
+# so it compiles on macos 
 [custom.all.idrisGL]
 type = "github"
 url = "https://github.com/bhaktishh/Idris2GL"
